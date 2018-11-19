@@ -58,6 +58,27 @@ app.get('/webhook/pay', async (req, res) => {
     res.json({ code: 0 })
 })
 
+app.get('/webhook/invalidpay', async (req, res) => {
+    responseForHook.InvoiceId = globalId
+    const response = await fetch(urlStatus, {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + Buffer.from(`${process.env.USER_PAY}:${process.env.PASS}`).toString('base64'),
+        },
+        body: JSON.stringify(responseForHook)
+    })
+    const resp = await response.json()
+    responseForBot.data.data = resp.Model.CardHolderMessage
+    
+    fetch(urlHook, {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(responseForBot)
+    })
+    
+    res.json({ code: 0 })
+})
+
 app.listen(8080, () => {
     console.log('Server working')
 })
