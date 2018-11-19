@@ -4,6 +4,7 @@ require('dotenv').config()
 const responseForHook = require('./responseForHook')
 const responseForBot = require('./responseForBot')
 const requireForPay = require('./requireForPay')
+const sub = require('./subscription')
 
 const app = expess()
 
@@ -77,6 +78,21 @@ app.get('/webhook/invalidpay', async (req, res) => {
     })
     
     res.json({ code: 0 })
+})
+
+app.get('/sub/month', async (req, res) => {
+    let date = new Date()
+    sub.interval = 'Month'
+    sub.startDate = date
+
+    const response = await fetch('https://api.cloudpayments.ru/subscriptions/create', {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + Buffer.from(`${process.env.USER_PAY}:${process.env.PASS}`).toString('base64'),
+        },
+        body: JSON.stringify(sub)        
+    })
+    const resp = await response.json()
 })
 
 app.listen(8080, () => {
