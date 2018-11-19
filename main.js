@@ -7,7 +7,7 @@ const app = expess()
 const url = 'https://api.cloudpayments.ru/orders/create'
 const urlStatus = 'https://api.cloudpayments.ru/payments/find'
 const urlHook = 'https://app.botmother.com/api/bot/action/H1bjU9lDm/FzD5BZMDpDCCSwZCqCBC-JxDzBvzBJCBcukBWKDJD0BVCcpDnBnD1BgB_PBaWqDs' 
-
+let globalId
 const responseForBot = {
     platform: 'tg',
     users: 'everyone',
@@ -38,12 +38,43 @@ app.get('/', async (req, res) => {
             }
         })
         const resp = await response.json()
-        console.log(resp)
+        globalId = resp.Model.Number
+        res.send(resp)
     } else{
         res.send({'err':'no total'})
     }
   
 })
+
+app.get('/webhook/pay', async (req, res) => {
+    const body = {
+        InvoiceId: globalId
+    }
+    const response = await fetch(urlStatus, {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + Buffer.from(`${process.env.USER_PAY}:${process.env.PASS}`).toString('base64'),
+        },
+        body: JSON.stringify(body)
+    })
+    const resp = await response.json()
+
+    const bd = {
+        platform: 'tg',
+        users: 'everyone',
+        data: {
+            data: resp.Model.CardHolderMessage
+        }
+    }
+    fetch(urlHook, {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bd)
+    })
+
+    res.json({ code: 0 })
+})
+
 
 app.listen(8080, () => {
     console.log('Server working')
