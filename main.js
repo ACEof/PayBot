@@ -1,6 +1,8 @@
 const expess = require('express')
 const fetch = require('node-fetch')
 require('dotenv').config()
+const responseForHook = require('./responseForHook')
+const responseForBot = require('./responseForBot')
 
 const app = expess()
 
@@ -47,9 +49,7 @@ app.get('/', async (req, res) => {
 })
 
 app.get('/webhook/pay', async (req, res) => {
-    const body = {
-        InvoiceId: globalId
-    }
+    responseForHook.InvoiceId = globalId
     const response = await fetch(urlStatus, {
         method: 'post',
         headers: { 'Content-Type': 'application/json',
@@ -58,23 +58,16 @@ app.get('/webhook/pay', async (req, res) => {
         body: JSON.stringify(body)
     })
     const resp = await response.json()
+    responseForBot.data.data = resp.Model.CardGolderMessage
 
-    const bd = {
-        platform: 'tg',
-        users: 'everyone',
-        data: {
-            data: resp.Model.CardHolderMessage
-        }
-    }
     fetch(urlHook, {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bd)
+        body: JSON.stringify(responseForBot)
     })
 
     res.json({ code: 0 })
 })
-
 
 app.listen(8080, () => {
     console.log('Server working')
