@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 require('dotenv').config()
 const responseForHook = require('./responseForHook')
 const responseForBot = require('./responseForBot')
+const requireForPay = require('./requireForPay')
 
 const app = expess()
 
@@ -10,13 +11,6 @@ const url = 'https://api.cloudpayments.ru/orders/create'
 const urlStatus = 'https://api.cloudpayments.ru/payments/find'
 const urlHook = 'https://app.botmother.com/api/bot/action/H1bjU9lDm/FzD5BZMDpDCCSwZCqCBC-JxDzBvzBJCBcukBWKDJD0BVCcpDnBnD1BgB_PBaWqDs' 
 let globalId
-const responseForBot = {
-    platform: 'tg',
-    users: 'everyone',
-    data: {
-        message: ''
-    }
-}
 
 app.get('/', async (req, res) => {
 
@@ -26,15 +20,10 @@ app.get('/', async (req, res) => {
     
 
     if(total){
-
-        const body = {
-            'Amount':total,
-            'Currency':'RUB',
-            'Description':'Оплата в боте',
-        }
+        requireForPay.Amount = total
         const response = await fetch(url, {
             method: 'post',
-            body: JSON.stringify(body),
+            body: JSON.stringify(requireForPay),
             headers: {'Content-Type': 'application/json',
                 'Authorization': 'Basic ' + Buffer.from(`${process.env.USER_PAY}:${process.env.PASS}`).toString('base64')
             }
@@ -55,7 +44,7 @@ app.get('/webhook/pay', async (req, res) => {
         headers: { 'Content-Type': 'application/json',
             'Authorization': 'Basic ' + Buffer.from(`${process.env.USER_PAY}:${process.env.PASS}`).toString('base64'),
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(responseForHook)
     })
     const resp = await response.json()
     responseForBot.data.data = resp.Model.CardGolderMessage
