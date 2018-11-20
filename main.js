@@ -93,6 +93,9 @@ app.get('/sub/month', async (req, res) => {
         body: JSON.stringify(sub)        
     })
     const resp = await response.json()
+    if (resp.Model.Status === 'Active') {
+        res.json({status: 'Месячная подписка успешно активирована. Стоимость 100р'})
+    }
 })
 
 app.listen(8080, () => {
