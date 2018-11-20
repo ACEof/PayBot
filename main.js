@@ -98,6 +98,24 @@ app.get('/sub/month', async (req, res) => {
     }
 })
 
+app.get('/sub/week', async (req, res) => {
+    let date = new Date()
+    sub.interval = 'Week'
+    sub.startDate = date
+
+    const response = await fetch('https://api.cloudpayments.ru/subscriptions/create', {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + Buffer.from(`${process.env.USER_PAY}:${process.env.PASS}`).toString('base64'),
+        },
+        body: JSON.stringify(sub)        
+    })
+    const resp = await response.json()
+    if (resp.Model.Status === 'Active') {
+        res.send({status: 'Недельная подписка успешно активирована. Стоимость 40р'}).end()
+    }
+})
+
 app.listen(8080, () => {
     console.log('Server working')
 })
